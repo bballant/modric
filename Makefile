@@ -9,12 +9,11 @@ CFLAGS = -g -Wall
 default: $(TARGET)
 all: default
 
-OBJECTS = src/modric.o
-HEADERS = include/modric.h
+OBJECTS = src/modric.o src/miniprintf.o
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
-%.o: %.c $(HEADERS)
+%.o: %.c %.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJECTS)
