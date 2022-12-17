@@ -1,6 +1,7 @@
 #include "miniprintf.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include <assert.h>
 
 char *show_binary(int width, int n) {
   size_t count = (sizeof n) * 8;
@@ -25,9 +26,7 @@ int my_printf(const char *format, ...) {
   return rc;
 }
 
-void print_binary(int width, int n) {
-  printf("%s", show_binary(width, n));
-}
+void print_binary(int width, int n) { printf("%s", show_binary(width, n)); }
 
 void println_binary(int width, int n) {
   print_binary(width, n);
@@ -49,17 +48,17 @@ void print_some_bits() {
 
   c = a & b; /* 12 = 0000 1100 */
   printf("%s & ", show_binary(8, a));
-  printf("%s ",  show_binary(8, b));
+  printf("%s ", show_binary(8, b));
   printf("= %03d, %s\n", c, show_binary(8, c));
 
   c = a | b; /* 61 = 0011 1101 */
   printf("%s | ", show_binary(8, a));
-  printf("%s ",  show_binary(8, b));
+  printf("%s ", show_binary(8, b));
   printf("= %03d, %s\n", c, show_binary(8, c));
 
   c = a ^ b; /* 49 = 0011 0001 */
   printf("%s ^ ", show_binary(8, a));
-  printf("%s ",  show_binary(8, b));
+  printf("%s ", show_binary(8, b));
   printf("= %03d, %s\n", c, show_binary(8, c));
 
   c = ~a; /*-61 = 1100 0011 */
@@ -75,12 +74,45 @@ void print_some_bits() {
   printf("= %03d, %s\n", c, show_binary(8, c));
 }
 
-static unsigned int ea_thirty[8] = {0, 1, 1, 1, 1, 0, 0, 0,};
-/*
-**         00000000000000000000000000000000
-**
-**
- */
+static unsigned int ea_thirty[8] = {
+    0, 1, 1, 1, 1, 0, 0, 0,
+};
+
+int ea_next(int width, int board) {
+  int next_board = 0;
+  for (int i = 0; i < width; i++) {
+    unsigned int neighbor_bits = 0;
+    if (i == 0) {
+      // left bit = word's rightmost bit
+      unsigned int left_bit = (board & 1) << 2; // [100]
+      // shift next two bits all the way to right and mask
+      unsigned int right_bits = (board >> (width - i - 2)) & 3;
+      neighbor_bits = left_bit | right_bits;
+    } else if (i == width - 1) {
+      // right bit = word's leftmost bit
+      unsigned int right_bit = (board >> (width - 1)) & 1;
+      unsigned int left_bits = (board & 3) << 1;
+      neighbor_bits = left_bits | right_bit;
+    } else {
+      // neighbor_bits
+      neighbor_bits = (board >> (width - i - 2)) & 7;
+    }
+    // ensure less than 8
+    neighbor_bits = neighbor_bits & 7;
+    unsigned int c = ea_thirty[neighbor_bits];
+    next_board = (next_board << 1) | c;
+  }
+  return next_board;
+}
+
+void elementary_automaton_thirty_(int width, int count) {
+  int board = 1 << (width /  2);
+  println_binary(width, board);
+  for (int i = 0; i < count; i++) {
+    board = ea_next(width, board);
+    println_binary(width, board);
+  }
+}
 
 void elementary_automaton_thirty() {
   // 0000000000000001 0000000000000000 = 65536;
@@ -144,10 +176,14 @@ void print_some_stuff() {
   }
 
   short int i = 30000;
-  printf("%d\n", (int)(sizeof i)*8);
+  printf("%d\n", (int)(sizeof i) * 8);
 }
 
 int main() {
   elementary_automaton_thirty();
+  printf("\n");
+  printf("---------------\n");
+  printf("\n");
+  elementary_automaton_thirty_(4, 100);
   return 0;
 }
