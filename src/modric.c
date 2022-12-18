@@ -77,7 +77,7 @@ void elementary_automaton_thirty(int width, int count) {
   }
 }
 
-void print_some_stuff() {
+void print_some_stuff(void) {
   for (int i = 0; i < 16; i++) {
     printf("%02d, %08x, %s\n", i, i, show_binary(4, i));
     my_printf("Cool %02d %08x\n", i, i);
