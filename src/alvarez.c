@@ -1,78 +1,43 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
 
-#define for_x for (int x = 0; x < w; x++)
-#define for_y for (int y = 0; y < h; y++)
-#define for_xy for_x for_y
+#include "read_file.h"
+#include "jsmn.h"
 
-void show(void *u, int w, int h)
-{
-	int (*univ)[w] = u;
-	printf("\033[H");
-	for_y {
-		for_x printf(univ[y][x] ? "\033[07m  \033[m" : "  ");
-		printf("\033[E");
-	}
-	fflush(stdout);
-}
-
-void show2(void *u, int w, int h)
-{
-	int (*univ)[w] = u;
-	printf("\n");
-	for_y {
-		for_x printf(univ[y][x] ? "x" : " ");
-		printf("\n");
-	}
-	fflush(stdout);
-}
-
-void evolve(void *u, int w, int h)
-{
-	unsigned (*univ)[w] = u;
-	unsigned new[h][w];
-
-	for_y for_x {
-		int n = 0;
-		for (int y1 = y - 1; y1 <= y + 1; y1++)
-			for (int x1 = x - 1; x1 <= x + 1; x1++)
-				if (univ[(y1 + h) % h][(x1 + w) % w])
-					n++;
-
-		if (univ[y][x]) n--;
-		new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
-	}
-	for_y for_x univ[y][x] = new[y][x];
-}
-
-void game(int w, int h)
-{
-	unsigned univ[h][w];
-	for_xy univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
-	while (1) {
-		show2(univ, w, h);
-		evolve(univ, w, h);
-		usleep(200000);
-	}
-}
-
-int main(int c, char **v)
-{
-	int w = 0, h = 0;
-	if (c > 1) w = atoi(v[1]);
-	if (c > 2) h = atoi(v[2]);
-	if (w <= 0) w = 30;
-	if (h <= 0) h = 30;
-	game(w, h);
-}
-
-int old() {
-   // printf() displays the string inside quotation
-  for (int i=0; i <16; i++) {
-     printf("1, %08x\n", i);
-     printf("2, %08x\n", ~i << 16);
-     printf("3, %08x\n", ~i << 16 | i);
+void print_token(jsmntok_t *tok) {
+  char *typ;
+  switch (tok->type) {
+  case JSMN_UNDEFINED:
+    typ = "JSMN_UNDEFINED";
+    break;
+  case JSMN_OBJECT:
+    typ = "JSMN_OBJECT";
+    break;
+  case JSMN_ARRAY:
+    typ = "JSMN_ARRAY";
+    break;
+  case JSMN_STRING:
+    typ = "JSMN_STRING";
+    break;
+  case JSMN_PRIMITIVE:
+    typ = "JSMN_PRIMATIVE";
+    break;
+  default:
+    typ = "UNKNOWN";
   }
+
+  printf("Token (%s), [%d, %d], %d\n", typ, tok->start, tok->end, tok->size);
+}
+
+int alvarez_main(int argc, char *argv[]) {
+  jsmn_parser p;
+  jsmntok_t t[128];
+  jsmn_init(&p);
+  char *res = read_text_file("colors.json");
+  int num_toks = jsmn_parse(&p, res, strlen(res), t, 128);
+  for (int i = 0; i < num_toks; i++ ) {
+    print_token(&t[i]);
+  }
+//  printf("HOly %s\n", res);
   return 0;
 }

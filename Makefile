@@ -9,7 +9,7 @@ CFLAGS = -g -Wall
 default: $(TARGET)
 all: default
 
-OBJECTS = src/modric.o src/miniprintf.o
+OBJECTS = src/alvarez.o src/modric.o src/miniprintf.o
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
@@ -19,9 +19,9 @@ OBJECTS = src/modric.o src/miniprintf.o
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
 
-run: $(TARGET)
-	./$(TARGET)
-
 clean:
 	-rm -f $(OBJECTS)
 	-rm -f $(TARGET)
+
+run: clean $(TARGET)
+	./$(TARGET) $(ARGS)

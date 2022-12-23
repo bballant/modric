@@ -1,4 +1,5 @@
 #include "miniprintf.h"
+#include "alvarez.h"
 #include <stdio.h>
 
 char *show_binary(int width, int n) {
@@ -36,7 +37,6 @@ void println_binary32(int n) {
   printf("\n");
 }
 
-
 static unsigned int ea_thirty[8] = {
     0, 1, 1, 1, 1, 0, 0, 0,
 };
@@ -69,7 +69,7 @@ int ea_next(int width, int board) {
 }
 
 void elementary_automaton_thirty(int width, int count) {
-  int board = 1 << (width /  2);
+  int board = 1 << (width / 2);
   println_binary(width, board);
   for (int i = 0; i < count; i++) {
     board = ea_next(width, board);
@@ -86,11 +86,11 @@ void print_some_stuff(void) {
   }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   elementary_automaton_thirty(4, 100);
   printf("\n");
   printf("---------------\n");
   printf("\n");
   elementary_automaton_thirty(32, 77);
-  return 0;
+  return alvarez_main(argc, argv);
 }
