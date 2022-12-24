@@ -5,6 +5,7 @@
 #include "modriclib.h"
 #include "jsmn.h"
 #include "cJSON.h"
+#include "cJSON_print.h"
 
 char *show_binary(int width, int n) {
   size_t count = (sizeof n) * 8;
@@ -128,7 +129,7 @@ void json_demo(void) {
     }
   }
 
-  char *cool = cJSON_Print(json);
+  char *cool = m_cJSON_Print(json);
 
   printf("~~~~~~ COOL ~~~~~~~\n%s\n", cool);
 }
