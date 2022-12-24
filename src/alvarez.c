@@ -2,8 +2,9 @@
 #include <string.h>
 
 #include "miniprintf.h"
-#include "read_file.h"
+#include "modriclib.h"
 #include "jsmn.h"
+#include "cJSON.h"
 
 char *show_binary(int width, int n) {
   size_t count = (sizeof n) * 8;
@@ -116,11 +117,27 @@ void print_token(jsmntok_t *tok) {
   printf("Token (%s), [%d, %d], %d\n", typ, tok->start, tok->end, tok->size);
 }
 
+void json_demo(void) {
+  printf("This is the JSON demo.\n");
+  char *res = m_read_text_file("colors.json");
+  cJSON *json = cJSON_Parse(res);
+  if (json == NULL) {
+    const char *error_ptr = cJSON_GetErrorPtr();
+    if (error_ptr != NULL) {
+      fprintf(stderr, "Error before: %s\n", error_ptr);
+    }
+  }
+
+  char *cool = cJSON_Print(json);
+
+  printf("~~~~~~ COOL ~~~~~~~\n%s\n", cool);
+}
+
 int alvarez_main(int argc, char *argv[]) {
   jsmn_parser p;
   jsmntok_t t[128];
   jsmn_init(&p);
-  char *res = read_text_file("colors.json");
+  char *res = m_read_text_file("colors.json");
   int num_toks = jsmn_parse(&p, res, strlen(res), t, 128);
   for (int i = 0; i < num_toks; i++ ) {
     print_token(&t[i]);

@@ -1,10 +1,10 @@
-#ifndef READ_FILE_H_
-#define READ_FILE_H_
+#ifndef MODRICLIB_H_
+#define MODRICLIB_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 
-size_t fsize(FILE *fp) {
+size_t m_fsize(FILE *fp) {
   long prev = ftell(fp);
   fseek(fp, 0L, SEEK_END);
   long sz = ftell(fp);
@@ -19,14 +19,13 @@ size_t fsize(FILE *fp) {
 ** There are some fancier ways to do this if this doesn't hold up:
 ** https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
 */
-char *read_text_file(const char *f_name) {
+char *m_read_text_file(const char *f_name) {
   FILE *fp = fopen(f_name, "r");
   if (!fp) {
     perror("Error opening file");
     return NULL;
   }
-  size_t sz = fsize(fp);
-  printf("sz %d\n", (int)sz);
+  size_t sz = m_fsize(fp);
   char *buffer = (char *)malloc(sz + 1);
   int c;
   int i = 0;
@@ -42,4 +41,4 @@ char *read_text_file(const char *f_name) {
   return buffer;
 }
 
-#endif // READ_FILE_H_
+#endif // MODRICLIB_H_

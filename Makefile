@@ -9,7 +9,7 @@ CFLAGS = -g -Wall
 default: $(TARGET)
 all: default
 
-OBJECTS = src/alvarez.o src/modric.o src/miniprintf.o
+OBJECTS = src/alvarez.o src/modric.o src/miniprintf.o src/cJSON.o
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
