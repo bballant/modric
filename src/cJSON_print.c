@@ -19,10 +19,6 @@
 #endif
 #define false ((cJSON_bool)0)
 
-#define internal_malloc malloc
-#define internal_free free
-#define internal_realloc realloc
-
 /* strlen of character literals resolved at compile time */
 #define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))
 #define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
@@ -30,9 +26,9 @@
 #define M_INDENT 2
 
 typedef struct internal_hooks {
-  void *(CJSON_CDECL *allocate)(size_t size);
-  void(CJSON_CDECL *deallocate)(void *pointer);
-  void *(CJSON_CDECL *reallocate)(void *pointer, size_t size);
+  void *(*allocate)(size_t size);
+  void (*deallocate)(void *pointer);
+  void *(*reallocate)(void *pointer, size_t size);
 } internal_hooks;
 
 typedef struct {
@@ -44,8 +40,7 @@ typedef struct {
   internal_hooks hooks;
 } printbuffer;
 
-static internal_hooks global_hooks = {internal_malloc, internal_free,
-                                      internal_realloc};
+static internal_hooks global_hooks = {malloc, free, realloc};
 
 // in cJSON this might check locale
 static unsigned char get_decimal_point(void) { return '.'; }
@@ -202,9 +197,7 @@ static cJSON_bool print_number(const cJSON *const item,
     output_pointer[i] = number_buffer[i];
   }
   output_pointer[i] = '\0';
-
   output_buffer->offset += (size_t)length;
-
   return true;
 }
 
@@ -565,7 +558,6 @@ static unsigned char *m_print(const cJSON *const item,
   unsigned char *printed = NULL;
 
   memset(buffer, 0, sizeof(buffer));
-
   /* create buffer */
   buffer->buffer = (unsigned char *)hooks->allocate(default_buffer_size);
   buffer->length = default_buffer_size;
