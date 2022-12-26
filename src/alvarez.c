@@ -4,6 +4,7 @@
 #include "modriclib.h"
 #include "cJSON.h"
 #include "json_pprint.h"
+#include "edn_parse.h"
 
 /* MADNESS */
 
@@ -90,8 +91,10 @@ void json_demo(void) {
   }
 
   char *cool = json_pprint(json);
-
   printf("~~~~~~ COOL ~~~~~~~\n%s\n", cool);
+
+  char *really_cool = edn_parse(res);
+  printf("~ Really COOL ~~~~~~~\n%s\n", really_cool);
 }
 
 int alvarez_main(int argc, char *argv[]) {
