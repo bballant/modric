@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "cJSON.h"
-#include "cJSON_print.h"
+#include "json_pprint.h"
 
 /* define our own boolean type */
 #ifdef true
@@ -609,6 +609,6 @@ fail:
 }
 
 /* Render a cJSON item/entity/structure to text. */
-CJSON_PUBLIC(char *) m_cJSON_Print(const cJSON *item) {
+char *json_pprint(const cJSON *item) {
   return (char *)m_print(item, &global_hooks);
 }

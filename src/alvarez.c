@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "miniprintf.h"
 #include "modriclib.h"
 #include "cJSON.h"
-#include "cJSON_print.h"
+#include "json_pprint.h"
+
+/* MADNESS */
 
 char *show_binary(int width, int n) {
   size_t count = (sizeof n) * 8;
@@ -15,18 +16,6 @@ char *show_binary(int width, int n) {
   }
   res[count] = 0;
   return res;
-}
-
-void my_putc(char ch) { putchar(ch); }
-
-int my_printf(const char *format, ...) {
-  va_list args;
-  int rc;
-
-  va_start(args, format);
-  rc = mini_vprintf_cooked(my_putc, format, args);
-  va_end(args);
-  return rc;
 }
 
 void print_binary(int width, int n) { printf("%s", show_binary(width, n)); }
@@ -84,7 +73,6 @@ void elementary_automaton_thirty(int width, int count) {
 void print_some_stuff(void) {
   for (int i = 0; i < 16; i++) {
     printf("%02d, %08x, %s\n", i, i, show_binary(4, i));
-    my_printf("Cool %02d %08x\n", i, i);
     // printf("2, %08x\n", ~i << 16);
     // printf("3, %08x\n", ~i << 16 | i);
   }
@@ -101,7 +89,7 @@ void json_demo(void) {
     }
   }
 
-  char *cool = m_cJSON_Print(json);
+  char *cool = json_pprint(json);
 
   printf("~~~~~~ COOL ~~~~~~~\n%s\n", cool);
 }
