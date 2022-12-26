@@ -4,6 +4,6 @@
 #include "cJSON.h"
 
 /* Render a cJSON item/entity/structure to text. */
-char * json_pprint(const cJSON *item);
+char *json_pprint(const cJSON *item);
 
 #endif // JSON_PPRINT_H_

@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "modriclib.h"
 #include "cJSON.h"
-#include "json_pprint.h"
 #include "edn_parse.h"
+#include "json_pprint.h"
+#include "modriclib.h"
 
 /* MADNESS */
 
@@ -97,6 +97,4 @@ void json_demo(void) {
   printf("~ Really COOL ~~~~~~~\n%s\n", really_cool);
 }
 
-int alvarez_main(int argc, char *argv[]) {
-  return 0;
-}
+int alvarez_main(int argc, char *argv[]) { return 0; }
