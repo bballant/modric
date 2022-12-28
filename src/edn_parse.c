@@ -311,6 +311,133 @@ fail:
   return 0;
 }
 
+static cJSON_bool parse_string_or_keyword(cJSON *const item,
+                                          parse_buffer *const input_buffer) {
+  const unsigned char *input_pointer = buffer_at_offset(input_buffer) + 1;
+  const unsigned char *input_end = buffer_at_offset(input_buffer) + 1;
+  unsigned char *output_pointer = NULL;
+  unsigned char *output = NULL;
+
+  /* not a string or keyword */
+  if (buffer_at_offset(input_buffer)[0] != '\"' &&
+      buffer_at_offset(input_buffer)[0] != ':') {
+    goto fail;
+  }
+
+  /* keywords begin w/ a ':' and end w/ ' ' (a space) */
+  cJSON_bool is_keyword = false;
+  if (buffer_at_offset(input_buffer) [0] == ':') is_keyword = true;
+
+  {
+    /* calculate approximate size of the output (overestimate) */
+    size_t allocation_length = 0;
+    size_t skipped_bytes = 0;
+    while (
+        ((size_t)(input_end - input_buffer->content) < input_buffer->length) &&
+        ((*input_end != '\"' && !is_keyword) || (*input_end != ' ' && is_keyword))) {
+      /* is escape sequence */
+      if (input_end[0] == '\\') {
+        if ((size_t)(input_end + 1 - input_buffer->content) >=
+            input_buffer->length) {
+          /* prevent buffer overflow when last input character is a backslash */
+          goto fail;
+        }
+        skipped_bytes++;
+        input_end++;
+      }
+      input_end++;
+    }
+    if (((size_t)(input_end - input_buffer->content) >= input_buffer->length) ||
+        ((*input_end != '\"' && !is_keyword) ||
+         (*input_end != ' ' && is_keyword))) {
+      goto fail; /* string ended unexpectedly */
+    }
+
+    /* This is at most how much we need for the output */
+    allocation_length =
+        (size_t)(input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
+    output = (unsigned char *)input_buffer->hooks.allocate(allocation_length +
+                                                           sizeof(""));
+    if (output == NULL) {
+      goto fail; /* allocation failure */
+    }
+  }
+
+  output_pointer = output;
+  /* loop through the string literal */
+  while (input_pointer < input_end) {
+    if (*input_pointer != '\\') {
+      *output_pointer++ = *input_pointer++;
+    }
+    /* escape sequence */
+    else {
+      unsigned char sequence_length = 2;
+      if ((input_end - input_pointer) < 1) {
+        goto fail;
+      }
+
+      switch (input_pointer[1]) {
+      case 'b':
+        *output_pointer++ = '\b';
+        break;
+      case 'f':
+        *output_pointer++ = '\f';
+        break;
+      case 'n':
+        *output_pointer++ = '\n';
+        break;
+      case 'r':
+        *output_pointer++ = '\r';
+        break;
+      case 't':
+        *output_pointer++ = '\t';
+        break;
+      case '\"':
+      case '\\':
+      case '/':
+        *output_pointer++ = input_pointer[1];
+        break;
+
+      /* UTF-16 literal */
+      case 'u':
+        sequence_length =
+            utf16_literal_to_utf8(input_pointer, input_end, &output_pointer);
+        if (sequence_length == 0) {
+          /* failed to convert UTF16-literal to UTF-8 */
+          goto fail;
+        }
+        break;
+
+      default:
+        goto fail;
+      }
+      input_pointer += sequence_length;
+    }
+  }
+
+  /* zero terminate the output */
+  *output_pointer = '\0';
+
+  item->type = cJSON_String;
+  item->valuestring = (char *)output;
+
+  input_buffer->offset = (size_t)(input_end - input_buffer->content);
+  input_buffer->offset++;
+
+  return true;
+
+fail:
+  if (output != NULL) {
+    input_buffer->hooks.deallocate(output);
+  }
+
+  if (input_pointer != NULL) {
+    input_buffer->offset = (size_t)(input_pointer - input_buffer->content);
+  }
+
+  return false;
+}
+
 /* Parse the input text into an unescaped cinput, and populate item. */
 static cJSON_bool parse_string(cJSON *const item,
                                parse_buffer *const input_buffer) {
@@ -638,7 +765,7 @@ static cJSON_bool parse_object(cJSON *const item,
     /* parse the name of the child */
     input_buffer->offset++;
     buffer_skip_whitespace(input_buffer);
-    if (!parse_string(current_item, input_buffer)) {
+    if (!parse_string_or_keyword(current_item, input_buffer)) {
       goto fail; /* failed to parse name */
     }
     buffer_skip_whitespace(input_buffer);

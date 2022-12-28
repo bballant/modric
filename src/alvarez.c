@@ -31,56 +31,29 @@ void println_binary32(int n) {
   printf("\n");
 }
 
-static unsigned int ea_thirty[8] = {
-    0, 1, 1, 1, 1, 0, 0, 0,
-};
-
-int ea_next(int width, int board) {
-  int next_board = 0;
-  for (int i = 0; i < width; i++) {
-    unsigned int neighbor_bits = 0;
-    if (i == 0) {
-      // left bit = word's rightmost bit
-      unsigned int left_bit = (board & 1) << 2; // [100]
-      // shift next two bits all the way to right and mask
-      unsigned int right_bits = (board >> (width - i - 2)) & 3;
-      neighbor_bits = left_bit | right_bits;
-    } else if (i == width - 1) {
-      // right bit = word's leftmost bit
-      unsigned int right_bit = (board >> (width - 1)) & 1;
-      unsigned int left_bits = (board & 3) << 1;
-      neighbor_bits = left_bits | right_bit;
-    } else {
-      // neighbor_bits
-      neighbor_bits = (board >> (width - i - 2)) & 7;
+void edn2json_pprint(const char *edn_file) {
+  char *res = m_read_text_file(edn_file);
+  cJSON *json = edn_parse(res);
+  if (json == NULL) {
+    const char *error_ptr = cJSON_GetErrorPtr();
+    if (error_ptr != NULL) {
+      fprintf(stderr, "Error before: %s\n", error_ptr);
     }
-    // ensure less than 8
-    neighbor_bits = neighbor_bits & 7;
-    unsigned int c = ea_thirty[neighbor_bits];
-    next_board = (next_board << 1) | c;
   }
-  return next_board;
-}
+  char *json_str = json_pprint(json);
+  printf("%s\n", json_str);
 
-void elementary_automaton_thirty(int width, int count) {
-  int board = 1 << (width / 2);
-  println_binary(width, board);
-  for (int i = 0; i < count; i++) {
-    board = ea_next(width, board);
-    println_binary(width, board);
-  }
-}
-
-void print_some_stuff(void) {
-  for (int i = 0; i < 16; i++) {
-    printf("%02d, %08x, %s\n", i, i, show_binary(4, i));
-    // printf("2, %08x\n", ~i << 16);
-    // printf("3, %08x\n", ~i << 16 | i);
-  }
+  // manage memory
+  free(res);
+  cJSON_Delete(json);
+  free(json_str);
 }
 
 void json_demo(void) {
   printf("This is the JSON demo.\n");
+
+  // pprinting a regular  JSON file
+  printf("pprinting a regular  JSON file\n");
   char *res = m_read_text_file("colors.json");
   cJSON *json = cJSON_Parse(res);
   if (json == NULL) {
@@ -89,14 +62,14 @@ void json_demo(void) {
       fprintf(stderr, "Error before: %s\n", error_ptr);
     }
   }
-
   char *cool = json_pprint(json);
-  printf("~~~~~~ COOL ~~~~~~~\n%s\n", cool);
+  printf("%s\n", cool);
+  free(res);
+  cJSON_Delete(json);
+  free(cool);
 
-  char *res2 = m_read_text_file("colors.edn");
-  cJSON *new_cool_json = edn_parse(res2);
-  char *really_cool = json_pprint(new_cool_json);
-  printf("~ Really COOL ~~~~~~~\n%s\n", really_cool);
+  printf("\n");
+  // parsing an edn file and pprinting it as json
+  printf("parsing an edn file and pprinting it as json\n");
+  edn2json_pprint("colors.edn");
 }
-
-int alvarez_main(int argc, char *argv[]) { return 0; }
