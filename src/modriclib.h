@@ -4,6 +4,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* MADNESS */
+
+char *show_binary(int width, int n) {
+  size_t count = (sizeof n) * 8;
+  count = width < count ? width : count;
+  static char res[((sizeof n) * 8) + 1];
+  for (int i = 0; i < count; i++) {
+    res[i] = '0' | ((n >> (count - 1 - i)) & 1);
+  }
+  res[count] = 0;
+  return res;
+}
+
+void print_binary(int width, int n) { printf("%s", show_binary(width, n)); }
+
+void println_binary(int width, int n) {
+  print_binary(width, n);
+  printf("\n");
+}
+
+void println_binary32(int n) {
+  print_binary(32, n);
+  printf("\n");
+}
+
+
 size_t m_fsize(FILE *fp) {
   long prev = ftell(fp);
   fseek(fp, 0L, SEEK_END);

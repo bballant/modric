@@ -1,6 +1,33 @@
+/*
+  Most of the code in this file was taken from cJSON and modified to support
+  EDN. cJSON comes with the following copyright notice:
+*/
+
+/*
+  Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/
+
 #include <limits.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "cJSON.h"
@@ -311,6 +338,12 @@ fail:
   return 0;
 }
 
+static cJSON_bool is_input_end(cJSON_bool is_keyword, unsigned char input_end) {
+  return (!is_keyword && input_end == '\"')
+         // TODO: do some general whitespace matching and bracket checking here
+         || (is_keyword && (input_end == ' ' || input_end == '\n'));
+}
+
 static cJSON_bool parse_string_or_keyword(cJSON *const item,
                                           parse_buffer *const input_buffer) {
   const unsigned char *input_pointer = buffer_at_offset(input_buffer) + 1;
@@ -326,7 +359,9 @@ static cJSON_bool parse_string_or_keyword(cJSON *const item,
 
   /* keywords begin w/ a ':' and end w/ ' ' (a space) */
   cJSON_bool is_keyword = false;
-  if (buffer_at_offset(input_buffer) [0] == ':') is_keyword = true;
+  if (buffer_at_offset(input_buffer)[0] == ':') {
+    is_keyword = true;
+  }
 
   {
     /* calculate approximate size of the output (overestimate) */
@@ -334,7 +369,7 @@ static cJSON_bool parse_string_or_keyword(cJSON *const item,
     size_t skipped_bytes = 0;
     while (
         ((size_t)(input_end - input_buffer->content) < input_buffer->length) &&
-        ((*input_end != '\"' && !is_keyword) || (*input_end != ' ' && is_keyword))) {
+        !is_input_end(is_keyword, *input_end)) {
       /* is escape sequence */
       if (input_end[0] == '\\') {
         if ((size_t)(input_end + 1 - input_buffer->content) >=
@@ -348,8 +383,7 @@ static cJSON_bool parse_string_or_keyword(cJSON *const item,
       input_end++;
     }
     if (((size_t)(input_end - input_buffer->content) >= input_buffer->length) ||
-        ((*input_end != '\"' && !is_keyword) ||
-         (*input_end != ' ' && is_keyword))) {
+        !is_input_end(is_keyword, *input_end)) {
       goto fail; /* string ended unexpectedly */
     }
 
