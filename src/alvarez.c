@@ -31,9 +31,27 @@ void println_binary32(int n) {
   printf("\n");
 }
 
-void edn2json_pprint(const char *edn_file) {
+void edn_to_json_pretty_print(const char *edn_file) {
   char *res = m_read_text_file(edn_file);
   cJSON *json = edn_parse(res);
+  if (json == NULL) {
+    const char *error_ptr = cJSON_GetErrorPtr();
+    if (error_ptr != NULL) {
+      fprintf(stderr, "Error before: %s\n", error_ptr);
+    }
+  }
+  char *json_str = json_pprint(json);
+  printf("%s\n", json_str);
+
+  // manage memory
+  free(res);
+  cJSON_Delete(json);
+  free(json_str);
+}
+
+void json_pretty_print(const char *json_file) {
+  char *res = m_read_text_file(json_file);
+  cJSON *json = cJSON_Parse(res);
   if (json == NULL) {
     const char *error_ptr = cJSON_GetErrorPtr();
     if (error_ptr != NULL) {
@@ -54,22 +72,11 @@ void json_demo(void) {
 
   // pprinting a regular  JSON file
   printf("pprinting a regular  JSON file\n");
-  char *res = m_read_text_file("colors.json");
-  cJSON *json = cJSON_Parse(res);
-  if (json == NULL) {
-    const char *error_ptr = cJSON_GetErrorPtr();
-    if (error_ptr != NULL) {
-      fprintf(stderr, "Error before: %s\n", error_ptr);
-    }
-  }
-  char *cool = json_pprint(json);
-  printf("%s\n", cool);
-  free(res);
-  cJSON_Delete(json);
-  free(cool);
+  json_pretty_print("colors.json");
 
   printf("\n");
+
   // parsing an edn file and pprinting it as json
   printf("parsing an edn file and pprinting it as json\n");
-  edn2json_pprint("colors.edn");
+  edn_to_json_pretty_print("colors.edn");
 }
