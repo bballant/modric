@@ -1,0 +1,5 @@
+{"color" "black"
+ "type" "primary"
+ "nested" {"whatscool" "nestedness"}
+ "number" 123
+ "an-array" [1 2 3]}

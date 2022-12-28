@@ -93,7 +93,9 @@ void json_demo(void) {
   char *cool = json_pprint(json);
   printf("~~~~~~ COOL ~~~~~~~\n%s\n", cool);
 
-  char *really_cool = edn_parse(res);
+  char *res2 = m_read_text_file("colors.edn");
+  cJSON *new_cool_json = edn_parse(res2);
+  char *really_cool = json_pprint(new_cool_json);
   printf("~ Really COOL ~~~~~~~\n%s\n", really_cool);
 }
 

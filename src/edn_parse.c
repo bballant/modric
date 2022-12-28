@@ -1,5 +1,6 @@
 #include <limits.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "cJSON.h"
@@ -490,9 +491,16 @@ static cJSON_bool parse_array(cJSON *const item,
       goto fail; /* failed to parse value */
     }
     buffer_skip_whitespace(input_buffer);
+    // whitespace is delimter in EDN so back
+    // it up one after getting rid of extra
+    input_buffer->offset--;
   } while (can_access_at_index(input_buffer, 0) &&
-           (buffer_at_offset(input_buffer)[0] == ','));
+           (buffer_at_offset(input_buffer)[0] == ' '));
 
+  // move back forward past end of word
+  // assuming we just came out of the do-while loop since,
+  // if it was an empty object, fn would have exited sooner
+  input_buffer->offset++;
   if (cannot_access_at_index(input_buffer, 0) ||
       buffer_at_offset(input_buffer)[0] != ']') {
     goto fail; /* expected end of array */
@@ -634,13 +642,15 @@ static cJSON_bool parse_object(cJSON *const item,
       goto fail; /* failed to parse name */
     }
     buffer_skip_whitespace(input_buffer);
+    // back it up to test for whitespace since whitespace is delim in edn
+    input_buffer->offset--;
 
     /* swap valuestring and string, because we parsed the name */
     current_item->string = current_item->valuestring;
     current_item->valuestring = NULL;
 
     if (cannot_access_at_index(input_buffer, 0) ||
-        (buffer_at_offset(input_buffer)[0] != ':')) {
+        (buffer_at_offset(input_buffer)[0] != ' ')) {
       goto fail; /* invalid object */
     }
 
@@ -651,9 +661,16 @@ static cJSON_bool parse_object(cJSON *const item,
       goto fail; /* failed to parse value */
     }
     buffer_skip_whitespace(input_buffer);
+    // whitespace is delimter in EDN so back
+    // it up one after getting rid of extra
+    input_buffer->offset--;
   } while (can_access_at_index(input_buffer, 0) &&
-           (buffer_at_offset(input_buffer)[0] == ','));
+           (buffer_at_offset(input_buffer)[0] == ' '));
 
+  // move back forward past end of word
+  // assuming we just came out of the do-while loop since,
+  // if it was an empty object, fn would have exited sooner
+  input_buffer->offset++;
   if (cannot_access_at_index(input_buffer, 0) ||
       (buffer_at_offset(input_buffer)[0] != '}')) {
     goto fail; /* expected end of object */
@@ -673,6 +690,7 @@ success:
   return true;
 
 fail:
+  printf("fail\n");
   if (head != NULL) {
     cJSON_Delete(head);
   }
@@ -681,10 +699,9 @@ fail:
 }
 
 /* Parse an object - create a new root, and populate. */
-CJSON_PUBLIC(cJSON *)
-m_cJSON_ParseWithLengthOpts(const char *value, size_t buffer_length,
-                            const char **return_parse_end,
-                            cJSON_bool require_null_terminated) {
+cJSON *edn_ParseWithLengthOpts(const char *value, size_t buffer_length,
+                               const char **return_parse_end,
+                               cJSON_bool require_null_terminated) {
   parse_buffer buffer = {0, 0, 0, 0, {0, 0, 0}};
   cJSON *item = NULL;
 
@@ -753,8 +770,20 @@ fail:
   return NULL;
 }
 
-/* Render a cJSON item/entity/structure to text. */
-char *edn_parse(const char *value) {
-  static char *i_work = "I Work!";
-  return i_work;
+cJSON *edn_ParseWithOpts(const char *value, const char **return_parse_end,
+                         cJSON_bool require_null_terminated) {
+  size_t buffer_length;
+
+  if (NULL == value) {
+    return NULL;
+  }
+
+  /* Adding null character size due to require_null_terminated. */
+  buffer_length = strlen(value) + sizeof("");
+
+  return edn_ParseWithLengthOpts(value, buffer_length, return_parse_end,
+                                 require_null_terminated);
 }
+
+/* Render a cJSON item/entity/structure to text. */
+cJSON *edn_parse(const char *value) { return edn_ParseWithOpts(value, 0, 0); }
