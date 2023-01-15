@@ -1,6 +1,6 @@
 TARGET = bin/modric
 
-LIBS = -lm
+LIBS = -lm -lrocksdb
 CC = gcc
 CFLAGS = -g -Wall
 
