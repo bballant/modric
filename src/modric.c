@@ -58,9 +58,26 @@ void json_demo(void) {
 }
 
 
+/*
+** ./bin/modric # no params, runs json_demo()
+** ./bin/modric -alvarez # run testing code
+** ./bin/modric -e2j file.edn  # convert edn to json and pprint
+** ./bin/modric -ppj file.json # pprint json
+**
+**  # rocksdb playin'
+**    # insert doc
+**  ./bin/modric -db path-to-db -key string-key-for-json -json path-to-json-file
+**    # print doc
+**  ./bin/modric -db path-to-db -key string-key-for-json
+ * */
 int main(int argc, char *argv[]) {
   if (argc == 1) {
       json_demo();
+  } else if (argc == 7 && strcmp(argv[1], "-db") == 0) {
+    printf("insert %s into db %s\n", argv[4], argv[2]);
+  } else if (argc == 5 && strcmp(argv[1], "-db") == 0) {
+    printf("fetch %s from db %s\n", argv[4], argv[2]);
+  } else if (argc == 5 && strcmp(argv[1], "-db") == 0) {
   } else if (argc == 2 && strcmp(argv[1], "-alvarez") == 0) {
       alvarez();
   } else if (argc == 3) {

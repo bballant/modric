@@ -1,6 +1,6 @@
 TARGET = bin/modric
 
-LIBS = -lm -lrocksdb
+LIBS = -lm -lrocksdb -lmicrohttpd
 CC = gcc
 CFLAGS = -g -Wall
 
@@ -9,7 +9,7 @@ CFLAGS = -g -Wall
 default: $(TARGET)
 all: default
 
-OBJECTS = src/modric.o src/cJSON.o src/json_pprint.o src/edn_parse.o src/alvarez.o
+OBJECTS = src/modric.o src/cJSON.o src/json_pprint.o src/edn_parse.o src/alvarez.o src/alvarez_rocks.o
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
