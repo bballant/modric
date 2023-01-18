@@ -35,8 +35,6 @@ static enum MHD_Result ahc_echo(void *cls, struct MHD_Connection *connection,
   char *tstr = malloc(64 * sizeof(char));
   strftime(tstr, 64 * sizeof(char), "%c", tm);
 
-  printf("creallly cool %s\n", tstr);
-
   response = MHD_create_response_from_buffer(strlen(tstr), (void *)tstr,
                                              MHD_RESPMEM_MUST_FREE);
 

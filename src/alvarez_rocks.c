@@ -13,20 +13,39 @@
 #include "alvarez_rocks.h"
 #include "rocksdb/c.h"
 
-#if defined(OS_WIN)
-#include <Windows.h>
-#else
 #include <unistd.h> // sysconf() - get CPU count
-#endif
 
-#if defined(OS_WIN)
-const char DBPath[] = "C:\\Windows\\TEMP\\rocksdb_c_simple_example";
-const char DBBackupPath[] =
-    "C:\\Windows\\TEMP\\rocksdb_c_simple_example_backup";
-#else
 const char DBPath[] = "/tmp/rocksdb_c_simple_example";
 const char DBBackupPath[] = "/tmp/rocksdb_c_simple_example_backup";
-#endif
+
+#define ERR(err) \
+  if (err) { \
+    fprintf(stderr, "Error: %s\n", err); \
+    abort(); \
+  }
+
+void a_rocks_insert_db(rocksdb_t *db, const char *key, const char *value) {
+  char *err = NULL;
+  // Put key-value
+  rocksdb_writeoptions_t *writeoptions = rocksdb_writeoptions_create();
+  rocksdb_put(db, writeoptions, key, strlen(key), value, strlen(value) + 1,
+              &err);
+  ERR(err);
+  rocksdb_writeoptions_destroy(writeoptions);
+}
+
+char *a_rocks_select_db(rocksdb_t *db, const char *key) {
+  char *err = NULL;
+  rocksdb_readoptions_t *readoptions = rocksdb_readoptions_create();
+  size_t len;
+  char *returned_value =
+      rocksdb_get(db, readoptions, key, strlen(key), &len, &err);
+  ERR(err);
+  rocksdb_readoptions_destroy(readoptions);
+  return returned_value;
+}
+
+
 
 int a_main(void) {
   rocksdb_t *db;
@@ -34,13 +53,8 @@ int a_main(void) {
   rocksdb_options_t *options = rocksdb_options_create();
   // Optimize RocksDB. This is the easiest way to
   // get RocksDB to perform well.
-#if defined(OS_WIN)
-  SYSTEM_INFO system_info;
-  GetSystemInfo(&system_info);
-  long cpus = system_info.dwNumberOfProcessors;
-#else
   long cpus = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
+
   // Set # of online cores
   rocksdb_options_increase_parallelism(options, (int)(cpus));
   rocksdb_options_optimize_level_style_compaction(options, 0);
@@ -50,26 +64,24 @@ int a_main(void) {
   // open DB
   char *err = NULL;
   db = rocksdb_open(options, DBPath, &err);
-  assert(!err);
 
   // open Backup Engine that we will use for backing up our database
   be = rocksdb_backup_engine_open(options, DBBackupPath, &err);
   assert(!err);
 
   // Put key-value
-  rocksdb_writeoptions_t *writeoptions = rocksdb_writeoptions_create();
-  const char key[] = "key";
-  const char *value = "value";
-  rocksdb_put(db, writeoptions, key, strlen(key), value, strlen(value) + 1,
-              &err);
-  assert(!err);
-  // Get value
-  rocksdb_readoptions_t *readoptions = rocksdb_readoptions_create();
-  size_t len;
-  char *returned_value =
-      rocksdb_get(db, readoptions, key, strlen(key), &len, &err);
-  assert(!err);
-  assert(strcmp(returned_value, "value") == 0);
+  char key[] = "new";
+  char *value = "zippio";
+
+  a_rocks_insert_db(db, key, value);
+
+//  rocksdb_readoptions_t *readoptions = rocksdb_readoptions_create();
+//  size_t len;
+//  char *returned_value =
+//      rocksdb_get(db, readoptions, key, strlen(key), &len, &err);
+//  assert(!err);
+  char *returned_value = a_rocks_select_db(db, key);
+  assert(strcmp(returned_value, "zippio") == 0);
   printf("This works: %s\n", returned_value);
   free(returned_value);
 
@@ -90,8 +102,6 @@ int a_main(void) {
   assert(!err);
 
   // cleanup
-  rocksdb_writeoptions_destroy(writeoptions);
-  rocksdb_readoptions_destroy(readoptions);
   rocksdb_options_destroy(options);
   rocksdb_backup_engine_close(be);
   rocksdb_close(db);
@@ -114,9 +124,6 @@ void alvarez_rocks(void) {
   printf("\n");
   const char foo[] = "bar";
   const char *bar = "bar";
-
-  const char key[] = "key";
-  const char *value = "value";
 
   printf("foo is %lu\n", strlen(foo));
   fprintf(stderr, "bar is %lu\n", strlen(bar));
