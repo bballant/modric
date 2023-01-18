@@ -7,8 +7,6 @@
 
 #include <unistd.h> // sysconf() - get CPU count
 
-const char DBPath[] = "/tmp/rocksdb_c_simple_example";
-
 #define ERR(err)                                                               \
   if (err) {                                                                   \
     fprintf(stderr, "Error: %s\n", err);                                       \
@@ -78,8 +76,12 @@ void alvarez_rocks(void) {
   char *value = "bar";
 
   a_rocks_insert(db_path, key, value);
-  printf("cool: %s\n", a_rocks_select(db_path, key));
+  char *ret = a_rocks_select(db_path, key);
+  printf("cool: %s\n", ret);
+  free(ret);
 
   a_rocks_insert(db_path, "wild", "stallion");
-  printf("cool: %s\n", a_rocks_select(db_path, "wild"));
+  ret = a_rocks_select(db_path, "wild");
+  printf("cool: %s\n", ret);
+  free(ret);
 }

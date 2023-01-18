@@ -79,7 +79,9 @@ int main(int argc, char *argv[]) {
     printf("Success!\n");
   } else if (argc == 5 && strcmp(argv[1], "-db") == 0) {
     printf("fetch %s from db %s\n", argv[4], argv[2]);
-    printf("result: %s\n", a_rocks_select(argv[2], argv[4]));
+    char *ret = a_rocks_select(argv[2], argv[4]);
+    printf("result: %s\n", ret);
+    free(ret);
   } else if (argc == 5 && strcmp(argv[1], "-db") == 0) {
   } else if (argc == 2 && strcmp(argv[1], "-alvarez") == 0) {
     // alvarez();
