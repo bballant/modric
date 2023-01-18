@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "alvarez.h"
+#include "alvarez_rocks.h"
 #include "cJSON.h"
 #include "edn_parse.h"
 #include "json_pprint.h"
 #include "modriclib.h"
-#include "alvarez.h"
-#include "alvarez_rocks.h"
 
 void edn_to_json_pretty_print(const char *edn_file) {
   char *res = m_read_text_file(edn_file);
@@ -58,7 +58,6 @@ void json_demo(void) {
   edn_to_json_pretty_print("colors.edn");
 }
 
-
 /*
 ** ./bin/modric # no params, runs json_demo()
 ** ./bin/modric -alvarez # run testing code
@@ -70,17 +69,20 @@ void json_demo(void) {
 **  ./bin/modric -db path-to-db -key string-key-for-json -json path-to-json-file
 **    # print doc
 **  ./bin/modric -db path-to-db -key string-key-for-json
- * */
+* */
 int main(int argc, char *argv[]) {
   if (argc == 1) {
-      json_demo();
+    json_demo();
   } else if (argc == 7 && strcmp(argv[1], "-db") == 0) {
     printf("insert %s into db %s\n", argv[4], argv[2]);
+    a_rocks_insert(argv[2], argv[4], argv[6]);
+    printf("Success!\n");
   } else if (argc == 5 && strcmp(argv[1], "-db") == 0) {
     printf("fetch %s from db %s\n", argv[4], argv[2]);
+    printf("result: %s\n", a_rocks_select(argv[2], argv[4]));
   } else if (argc == 5 && strcmp(argv[1], "-db") == 0) {
   } else if (argc == 2 && strcmp(argv[1], "-alvarez") == 0) {
-    //alvarez();
+    // alvarez();
     alvarez_rocks();
   } else if (argc == 3) {
     if (strcmp(argv[1], "-e2j") == 0) {

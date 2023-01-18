@@ -1,11 +1,3 @@
-
-
-//  Copyright (c) 2011-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under both the GPLv2 (found in the
-//  COPYING file in the root directory) and Apache 2.0 License
-//  (found in the LICENSE.Apache file in the root directory).
-
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,12 +8,11 @@
 #include <unistd.h> // sysconf() - get CPU count
 
 const char DBPath[] = "/tmp/rocksdb_c_simple_example";
-const char DBBackupPath[] = "/tmp/rocksdb_c_simple_example_backup";
 
-#define ERR(err) \
-  if (err) { \
-    fprintf(stderr, "Error: %s\n", err); \
-    abort(); \
+#define ERR(err)                                                               \
+  if (err) {                                                                   \
+    fprintf(stderr, "Error: %s\n", err);                                       \
+    abort();                                                                   \
   }
 
 void a_rocks_insert_db(rocksdb_t *db, const char *key, const char *value) {
@@ -45,86 +36,50 @@ char *a_rocks_select_db(rocksdb_t *db, const char *key) {
   return returned_value;
 }
 
-
-
-int a_main(void) {
-  rocksdb_t *db;
-  rocksdb_backup_engine_t *be;
-  rocksdb_options_t *options = rocksdb_options_create();
+rocksdb_t *a_rocks_init(char *db_path, rocksdb_options_t *options) {
   // Optimize RocksDB. This is the easiest way to
   // get RocksDB to perform well.
   long cpus = sysconf(_SC_NPROCESSORS_ONLN);
-
   // Set # of online cores
   rocksdb_options_increase_parallelism(options, (int)(cpus));
   rocksdb_options_optimize_level_style_compaction(options, 0);
   // create the DB if it's not already present
   rocksdb_options_set_create_if_missing(options, 1);
-
   // open DB
   char *err = NULL;
-  db = rocksdb_open(options, DBPath, &err);
+  rocksdb_t *db = rocksdb_open(options, db_path, &err);
+  ERR(err);
+  return db;
+}
 
-  // open Backup Engine that we will use for backing up our database
-  be = rocksdb_backup_engine_open(options, DBBackupPath, &err);
-  assert(!err);
-
-  // Put key-value
-  char key[] = "new";
-  char *value = "zippio";
-
+void a_rocks_insert(char *db_path, char *key, char *value) {
+  rocksdb_t *db;
+  rocksdb_options_t *options = rocksdb_options_create();
+  db = a_rocks_init(db_path, options);
   a_rocks_insert_db(db, key, value);
-
-//  rocksdb_readoptions_t *readoptions = rocksdb_readoptions_create();
-//  size_t len;
-//  char *returned_value =
-//      rocksdb_get(db, readoptions, key, strlen(key), &len, &err);
-//  assert(!err);
-  char *returned_value = a_rocks_select_db(db, key);
-  assert(strcmp(returned_value, "zippio") == 0);
-  printf("This works: %s\n", returned_value);
-  free(returned_value);
-
-  // create new backup in a directory specified by DBBackupPath
-  rocksdb_backup_engine_create_new_backup(be, db, &err);
-  assert(!err);
-
   rocksdb_close(db);
-
-  // If something is wrong, you might want to restore data from last backup
-  rocksdb_restore_options_t *restore_options = rocksdb_restore_options_create();
-  rocksdb_backup_engine_restore_db_from_latest_backup(be, DBPath, DBPath,
-                                                      restore_options, &err);
-  assert(!err);
-  rocksdb_restore_options_destroy(restore_options);
-
-  db = rocksdb_open(options, DBPath, &err);
-  assert(!err);
-
-  // cleanup
   rocksdb_options_destroy(options);
-  rocksdb_backup_engine_close(be);
+}
+
+char *a_rocks_select(char *db_path, char *key) {
+  rocksdb_t *db;
+  rocksdb_options_t *options = rocksdb_options_create();
+  db = a_rocks_init(db_path, options);
+  char *ret = a_rocks_select_db(db, key);
   rocksdb_close(db);
-
-  return 0;
-}
-
-void a_rocks_insert(char *key, char *value) {
-
-}
-
-void a_rocks_select(char *key) {
-
+  rocksdb_options_destroy(options);
+  return ret;
 }
 
 void alvarez_rocks(void) {
-  printf("Hello Alvarez!\n");
-  a_main();
+  // Put key-value
+  char *db_path = "dataFoo";
+  char key[] = "Few";
+  char *value = "bar";
 
-  printf("\n");
-  const char foo[] = "bar";
-  const char *bar = "bar";
+  a_rocks_insert(db_path, key, value);
+  printf("cool: %s\n", a_rocks_select(db_path, key));
 
-  printf("foo is %lu\n", strlen(foo));
-  fprintf(stderr, "bar is %lu\n", strlen(bar));
+  a_rocks_insert(db_path, "wild", "stallion");
+  printf("cool: %s\n", a_rocks_select(db_path, "wild"));
 }
