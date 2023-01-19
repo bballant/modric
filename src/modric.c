@@ -7,6 +7,7 @@
 #include "edn_parse.h"
 #include "json_pprint.h"
 #include "modriclib.h"
+#include "http_client.h"
 
 void edn_to_json_pretty_print(const char *edn_file) {
   char *res = m_read_text_file(edn_file);
@@ -84,8 +85,9 @@ int main(int argc, char *argv[]) {
     free(ret);
   } else if (argc == 5 && strcmp(argv[1], "-db") == 0) {
   } else if (argc == 2 && strcmp(argv[1], "-alvarez") == 0) {
-    // alvarez();
-    alvarez_rocks();
+    //alvarez();
+    //alvarez_rocks();
+    run_http_client();
   } else if (argc == 3) {
     if (strcmp(argv[1], "-e2j") == 0) {
       edn_to_json_pretty_print(argv[2]);
