@@ -4,7 +4,7 @@ Nothing to "C" here. Get it?
 
 Modric is my all-purpose c playground, experimenting with JSON, EDN, and a database.
 
-Currently it uses (and depends on) (rocksdb)[http://rocksdb.org/] and has cJSON built in.
+Currently it uses (and depends on) [rocksdb](http://rocksdb.org/) and has cJSON built in.
 The JSON and EDN parts aren't talking to the rocksdb parts yet. I installed librocksdb-dev
 w/ apt-get.
 
