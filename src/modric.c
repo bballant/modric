@@ -123,23 +123,27 @@ int main(int argc, char *argv[]) {
     if (db_key == NULL) {
       usage(argv[0]);
     } else if (db_value != NULL) {
-      a_rocks_insert(db_path, db_key, db_value);
+      arocks_insert(db_path, db_key, db_value);
     } else if (db_count > 0) {
-      char *res[db_count];
-      int n = a_rocks_iter(db_path, db_key, db_count, res);
+      char *keys[db_count];
+      char *vals[db_count];
+      int n = arocks_iter(db_path, db_key, db_count, keys, vals);
       if (n == 0) {
         printf("key not found\n");
       } else {
         for (int i = 0; i < n; i++) {
-          printf("%s\n", res[i]);
+          printf("%s = %s\n", keys[i], vals[i]);
+          free(keys[i]);
+          free(vals[i]);
         }
       }
     } else {
-      char *ret = a_rocks_select(db_path, db_key);
+      char *ret = arocks_select(db_path, db_key);
       if (ret == NULL) {
         printf("key not found\n");
       } else {
         printf("%s\n", ret);
+        free(ret);
       }
     }
   }
