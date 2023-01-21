@@ -1,6 +1,6 @@
 TARGET = bin/modric
 
-LIBS = -lm
+LIBS = -lm -lrocksdb
 CC = gcc
 CFLAGS = -g -Wall
 
@@ -9,7 +9,7 @@ CFLAGS = -g -Wall
 default: $(TARGET)
 all: default
 
-OBJECTS = src/modric.o src/cJSON.o src/json_pprint.o src/edn_parse.o
+OBJECTS = src/modric.o src/cJSON.o src/json_pprint.o src/edn_parse.o src/arocks.o
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
@@ -25,3 +25,6 @@ clean:
 
 run: clean $(TARGET)
 	./$(TARGET) $(ARGS)
+
+run-alvarez: clean $(TARGET)
+	./$(TARGET) -alvarez
