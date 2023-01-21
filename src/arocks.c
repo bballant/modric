@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "alvarez_rocks.h"
+#include "arocks.h"
 #include "rocksdb/c.h"
 
 #include <unistd.h> // sysconf() - get CPU count
@@ -69,9 +69,25 @@ char *a_rocks_select(char *db_path, char *key) {
   return ret;
 }
 
+const char *a_rocks_iter_test(char *db_path) {
+  rocksdb_t *db;
+  rocksdb_options_t *options = rocksdb_options_create();
+  db = a_rocks_init(db_path, options);
+  //char *ret = a_rocks_select_db(db, key);
+  char *err = NULL;
+  rocksdb_readoptions_t *readoptions = rocksdb_readoptions_create();
+  rocksdb_iterator_t *iter = rocksdb_create_iterator(db, readoptions);
+  rocksdb_iter_seek_to_first(iter);
+  size_t vlen;
+  const char *returned_value = rocksdb_iter_value(iter, &vlen);
+  ERR(err);
+  rocksdb_readoptions_destroy(readoptions);
+  return returned_value;
+}
+
 void alvarez_rocks(void) {
   // Put key-value
-  char *db_path = "dataFoo";
+  char *db_path = ".data";
   char key[] = "Few";
   char *value = "bar";
 
@@ -84,4 +100,8 @@ void alvarez_rocks(void) {
   ret = a_rocks_select(db_path, "wild");
   printf("cool: %s\n", ret);
   free(ret);
+
+  const char *ret2 = a_rocks_iter_test(db_path);
+  printf("iter: %s\n", ret2);
+
 }

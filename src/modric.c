@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "alvarez.h"
-#include "alvarez_rocks.h"
+#include "arocks.h"
 #include "cJSON.h"
 #include "edn_parse.h"
 #include "json_pprint.h"
