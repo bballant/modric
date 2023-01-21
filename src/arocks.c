@@ -69,6 +69,10 @@ char *a_rocks_select(char *db_path, char *key) {
   return ret;
 }
 
+int a_rocks_iter(char *db_path, char *key, int count, char *res[]) {
+  return 0;
+}
+
 const char *a_rocks_iter_test(char *db_path) {
   rocksdb_t *db;
   rocksdb_options_t *options = rocksdb_options_create();
