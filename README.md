@@ -25,12 +25,12 @@ Modric Usage: ./bin/modric OPTIONS
   -value         - value to set at key
   -count         - num values to return, starting at key
 
-
 # pprint json
 $ ./bin/modric -ppj colors.json
 
 # convert edn to json and pprint as json
 $ ./bin/modric -e2j colors.edn
+
 
 # Using rocks db
 
