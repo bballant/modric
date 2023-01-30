@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "arocks.h"
+#include "bst.h"
 #include "cJSON.h"
 #include "edn_parse.h"
 #include "json_pprint.h"
@@ -57,6 +58,31 @@ void json_demo(void) {
   edn_to_json_pretty_print("colors.edn");
 }
 
+_Bool printStr(void *str) { return printf("%s", (char *)str) >= 0; }
+
+void bst_demo(void) {
+  static int LEN_MAX = 1000;
+  char buffer[LEN_MAX]; // Max length of line
+  BST_t *strTree = newBST((CmpFunc_t *)strcmp, NULL);
+  int n;
+
+  while (fgets(buffer, LEN_MAX, stdin) != NULL) {
+    size_t len = strlen(buffer); // Length incl. newline character.
+    if (!BST_insert(strTree, buffer, len + 1)) // Insert the line in the
+      break;                                   // tree.
+  }
+
+  if (!feof(stdin)) { // If unable to read the entire text:
+    fprintf(stderr, "sortlines: "
+                    "Error reading or storing text input.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  n = BST_inorder(strTree, printStr); // Print each line, in sorted order.
+  fprintf(stderr, "\nsortlines: Printed %d lines.\n", n);
+  BST_clear(strTree); // Discard all nodes.
+}
+
 static void usage(const char *prog) {
   fprintf(stderr,
           "Modric "
@@ -94,7 +120,7 @@ int main(int argc, char *argv[]) {
   // Parse command-line flags
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-alvarez") == 0) {
-      alvarez_rocks();
+      bst_demo();
       db_path = NULL;
       break;
     } else if (strcmp(argv[i], "-e2j") == 0) {
